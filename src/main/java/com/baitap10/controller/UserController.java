@@ -1,21 +1,40 @@
 package com.baitap10.controller;
 
-import com.baitap10.entity.UserInfo;
+import com.baitap10.entity.User;
 import com.baitap10.service.UserService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
+@RequestMapping("/users")
 @RestController
-@RequestMapping("/user")
-@RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
-    @PostMapping("/new")
-    public String addUser(@RequestBody UserInfo userInfo) {
-        return userService.addUser(userInfo);
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> authenticatedUser() {
+        // Lấy đối tượng Authentication từ SecurityContext (đã được JwtAuthenticationFilter thiết lập)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        // Ép kiểu Principal về class User của bạn
+        User currentUser = (User) authentication.getPrincipal();
+
+        return ResponseEntity.ok(currentUser);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<List<User>> allUsers() {
+        List<User> users = userService.allUsers();
+        return ResponseEntity.ok(users);
     }
 }
